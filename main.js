@@ -69,11 +69,11 @@ function openPDF(file) {
             const lfdInput = document.getElementById("lfd-input");
             lfdInput.value = `${fields.LFD}`;
             const anDateInput = document.getElementById("an-date");
-            anDateInput.value = `${fields.AN_Date}`;
+            anDateInput.value = `${fields.AN_Date}` ?? "";
             const storagePeriodInput = document.getElementById("storage-period-days");
-            storagePeriodInput.value = `${fields.Storage_period}`;
+            storagePeriodInput.value = `${fields.Storage_period}` ?? "";
             const filenameText = document.getElementById("filename-text");
-            filenameText.value = `pcs: ${fields.pcs}, AWB: ${fields.AWB}`;
+            filenameText.value = "AN-"+`${fields.AWB}`+"-"+`${fields.pcs}`+"pcs-"+`${fields.skids}`+"skids-"+`${fields.CAD}`+"CAD-"+"LFD"+`${fields.LFD}`;
         })
         .catch((error) => {
             console.error("Error extracting text or fields:", error);

@@ -1,0 +1,24 @@
+{
+  "name": "an-local-document-renamer",
+  "version": "1.0.0",
+  "description": "Repository for a local document renamer. By default it reads arrival notice pdf and reads data to generate a new file name. Then it allows user to download the renamed file.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/An10000/an-local-document-renamer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/An10000/an-local-document-renamer/issues"
+  },
+  "homepage": "https://github.com/An10000/an-local-document-renamer#readme",
+  "dependencies": {
+    "pdfjs-dist": "^6.2.108"
+  }
+}
