@@ -12,7 +12,17 @@
         <h1>Local Document Renamer</h1>
         <div class="main-box">
             <div class="left-panel">
-                Left
+                <div id="drop-zone">
+                    <p>Drop PDF Here</p>
+                    <p>or click to select</p>
+                    <input
+                        type="file"
+                        id="file-input"
+                        accept="application/pdf"
+                        hidden
+                    >
+                </div>
+                <iframe id="pdf-viewer"></iframe>
             </div>
 
             <div class="right-panel">

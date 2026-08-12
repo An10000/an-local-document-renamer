@@ -39,5 +39,31 @@ h1 {
 }
 
 .left-panel {
-    border-right: 1px solid #2d5f8b;
+    display: flex;
+    flex-direction: column;
+}
+
+#drop-zone {
+    height: 100%;
+    border: 2px dashed #2d5f8b;
+    border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    cursor: pointer;
+}
+
+#drop-zone p {
+    margin: 5px;
+}
+
+#pdf-viewer {
+    display: none;
+
+    width: 100%;
+    height: 100%;
+    border: none;
 }
