@@ -5,7 +5,7 @@ body {
 }
 
 .page-box {
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
     padding: 20px;
     background-color: #173a5e;
@@ -22,9 +22,9 @@ h1 {
 
 .main-box {
     display: flex;
-    width: 80%;
-    height: 500px;
-    margin: 30px auto;
+    width: 90%;
+    height: 500px auto;
+    margin: 20px auto;
     border: 2px solid #2d5f8b;
     border-radius: 12px;
     background-color: #102b46;
