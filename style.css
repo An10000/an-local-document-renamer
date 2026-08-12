@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.main-box {
+    display: flex;
+    width: 80%;
+    height: 500px;
+    margin: 40px auto;
+    border: 1px solid black;
+}
+
+.left-panel,
+.right-panel {
+    width: 50%;
+    padding: 20px;
+}
+
+.left-panel {
+    border-right: 1px solid black;
+}
