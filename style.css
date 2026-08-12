@@ -1,3 +1,4 @@
+/* default styles for the page */
 body {
     font-family: Arial, sans-serif;
     margin: 40px;
@@ -19,7 +20,7 @@ h1 {
     font-size: 36px;
     font-weight: normal;
 }
-
+/* styles for the main box containing the panels */
 .main-box {
     display: flex;
     width: 95%;
@@ -31,14 +32,9 @@ h1 {
     overflow: hidden;
 }
 
-.left-panel,
-.right-panel {
-    width: 50%;
-    padding: 20px;
-    color: white;
-}
-
+/* left panel styles */
 .left-panel {
+    width: 60%;
     display: flex;
     flex-direction: column;
 }
@@ -66,4 +62,58 @@ h1 {
     width: 100%;
     height: 100%;
     border: none;
+}
+
+/* right panel styles */
+.right-panel {
+    width: 40%;
+    padding: 20px;
+    color: white;
+}
+
+.info-section {
+    padding: 20px;
+}
+
+.info-section h2 {
+    margin-top: 0;
+    color: white;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 12px;
+    border-bottom: 1px solid #2d5f8b;
+    color: white;
+}
+
+.info-table td:first-child {
+    width: 40%;
+}
+
+.info-table input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 8px;
+    border: 1px solid #2d5f8b;
+    border-radius: 6px;
+}
+
+.info-table summary {
+    cursor: pointer;
+}
+
+.details-content {
+    margin-top: 10px;
+    padding-left: 10px;
+    font-size: 14px;
+}
+
+.details-content p {
+    margin: 5px 0;
 }
