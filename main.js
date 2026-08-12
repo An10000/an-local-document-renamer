@@ -1,3 +1,7 @@
+import {
+    extractTextFromPDF,
+    extractFieldsFromText
+} from "./documentProcessor.js";
 // left panel logic
 const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("file-input");
@@ -40,6 +44,40 @@ function openPDF(file) {
 
     dropZone.style.display = "none";
     pdfViewer.style.display = "block";
+
+    // Extract text from the PDF and then extract fields from the text
+    extractTextFromPDF(file)
+        .then((text) => {
+            return extractFieldsFromText(text);
+        })
+        .then((fields) => {
+            // Display the extracted fields in the right panel
+            const awbInput = document.getElementById("awb-input");
+            awbInput.value = `${fields.AWB}`;
+            const pcsInput = document.getElementById("pcs-input");
+            pcsInput.value = `${fields.pcs}`;
+            if (fields.parts === "Yes") {
+                document.querySelector('input[name="parts"][value="yes"]').checked = true;
+            }
+            else {
+                document.querySelector('input[name="parts"][value="no"]').checked = true;
+            }
+            const skidsInput = document.getElementById("skids-input");
+            skidsInput.value = `${fields.skids}`;
+            const cadInput = document.getElementById("cad-input");
+            cadInput.value = `${fields.CAD}`;
+            const lfdInput = document.getElementById("lfd-input");
+            lfdInput.value = `${fields.LFD}`;
+            const anDateInput = document.getElementById("an-date");
+            anDateInput.value = `${fields.AN_Date}`;
+            const storagePeriodInput = document.getElementById("storage-period-days");
+            storagePeriodInput.value = `${fields.Storage_period}`;
+            const filenameText = document.getElementById("filename-text");
+            filenameText.value = `pcs: ${fields.pcs}, AWB: ${fields.AWB}`;
+        })
+        .catch((error) => {
+            console.error("Error extracting text or fields:", error);
+        });
 }
 // right panel logic
 // click to copy the filename to clipboard
