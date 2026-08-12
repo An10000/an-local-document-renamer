@@ -117,3 +117,15 @@ h1 {
 .details-content p {
     margin: 5px 0;
 }
+
+.radio-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.radio-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: auto;
+}
