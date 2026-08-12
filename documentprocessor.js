@@ -1,5 +1,20 @@
+import * as pdfjsLib from "./lib/pdfjs/pdf.mjs";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "./lib/pdfjs/pdf.worker.mjs";
+
 export async function extractTextFromPDF(file) {
     // TODO: PDF -> text
+
+    const data = await file.arrayBuffer();
+
+    const loadingTask = pdfjsLib.getDocument({
+        data: data
+    });
+
+    const pdf = await loadingTask.promise;
+
+    console.log("PDF pages:", pdf.numPages);
     return "pcs: 15";
 }
 
