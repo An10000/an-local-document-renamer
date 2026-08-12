@@ -1,6 +1,5 @@
 import {
-    extractTextFromPDF,
-    extractFieldsFromText
+    extractFieldsFromPDF
 } from "./documentProcessor.js";
 // left panel logic
 const dropZone = document.getElementById("drop-zone");
@@ -46,10 +45,7 @@ function openPDF(file) {
     pdfViewer.style.display = "block";
 
     // Extract text from the PDF and then extract fields from the text
-    extractTextFromPDF(file)
-        .then((text) => {
-            return extractFieldsFromText(text);
-        })
+    extractFieldsFromPDF(file)
         .then((fields) => {
             // Display the extracted fields in the right panel
             const awbInput = document.getElementById("awb-input");
