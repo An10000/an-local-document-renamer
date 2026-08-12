@@ -138,7 +138,15 @@ h1 {
 
 #filename-text {
     flex: 1;
-    overflow-wrap: anywhere;
+    min-width: 0;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+    color: black;
+
+    font: inherit;
 }
 
 #copy-button {
@@ -155,7 +163,6 @@ h1 {
 
     transition: background-color 0.2s;
 }
-
 #copy-button:hover {
     background-color: #dddddd;
 }
@@ -164,5 +171,4 @@ h1 {
 }
 #check-icon {
     display: none;
-    font-size: 22px;
 }

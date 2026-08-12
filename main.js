@@ -49,9 +49,7 @@ const checkIcon = document.getElementById("check-icon");
 const filenameText = document.getElementById("filename-text");
 
 copyButton.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(
-        filenameText.textContent.trim()
-    );
+    await navigator.clipboard.writeText(filenameText.value);
 
     copyIcon.style.display = "none";
     checkIcon.style.display = "block";
