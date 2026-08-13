@@ -62,7 +62,7 @@ function isAwbHeader(item) {
             text.includes(keyword)
         );
     console.log("Checking if item is AWB header:", text, "Result:", containsHeaderKeyword);
-    return containsHeaderKeyword;
+    return {"result":containsHeaderKeyword, "priority": 1};
 }
 // AWB number detection
 function normalizeAwb(text) {
@@ -96,7 +96,7 @@ function isPcsHeader(item) {
         );
     const isNumber = isPcsNumber(item)["result"];
     console.log("Checking if item is PCS header:", text, "Result:", containsHeaderKeyword && !isNumber);
-    return containsHeaderKeyword && !isNumber;
+    return {"result":containsHeaderKeyword && !isNumber, "priority": 1};
 }
 // pcs number detection
 function normalizePcs(text) {
@@ -157,7 +157,10 @@ function isSkidHeader(item) {
         "item:",
         item
     );
-    return containsHeaderKeyword && !isNumber["result"];
+    return {
+        "result":containsHeaderKeyword && !isNumber["result"],
+        "priority": 1
+    };
 }
 // SKID value detection
 function normalizeSkid(text) {
@@ -195,7 +198,92 @@ function isSkidNumber(item) {
         "priority": 1
     };
 }
+// CAD header detection
+function isCADHeader(item) {
+    const text = item.text
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
+    // 前后有其它文字没关系
+    if (/\bGRAND\s+TOTAL\b/.test(text)) {
+        console.log(
+            "Checking if item is CAD header:",
+            text,
+            "Result:",
+            true,
+            "item:",
+            item
+        );
+        return {
+            "result": true,
+            "priority": 3
+        };
+    }
+
+    if (/\bTOTAL\s+DUE\b/.test(text)) {
+        console.log(
+            "Checking if item is CAD header:",
+            text,
+            "Result:",
+            true,
+            "item:",
+            item
+        );
+        return {
+            "result": true,
+            "priority": 2
+        };
+    }
+
+    // 避免 SUBTOTAL / SUB TOTAL
+    if (
+        /\bTOTAL\b/.test(text) &&
+        !/\bSUB\s*TOTAL\b/.test(text)
+    ) {
+        console.log(
+            "Checking if item is CAD header:",
+            text,
+            "Result:",
+            true,
+            "item:",
+            item
+        );
+        return {
+            "result": true,
+            "priority": 1
+        };
+    }
+
+    return {
+        "result": false,
+        "priority": 0
+    };
+}
+function normalizeCAD(text){
+    const raw = text.trim();
+
+    const match = raw.match(
+        /(?:CAD\s*)?\$?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?/i
+    );
+
+    if (!match) {
+        return null;
+    }
+
+    const dollars = match[1].replace(/,/g, "");
+    const cents = (match[2] ?? "00").padEnd(2, "0");
+
+    return `${dollars}.${cents}`;
+}
+function isCADNumber(item){
+    console.log("Checking if item is CAD number:", item.text, "Result:", normalizeCAD(item.text) !== null, "item: ", item);
+    return {
+        "result": normalizeCAD(item.text) !== null,
+        "priority": 1
+    };
+}
 
 // function to find by geometry
 // horizontal find helper:
@@ -236,7 +324,12 @@ function getDistance(header, value) {
     return dx + dy;
 }
 function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer) {
-    const headers = items.filter(headerPredicate);
+    let headers = items.filter(headerPredicate["result"] ? headerPredicate : (item) => headerPredicate(item)["result"]);
+    const sortedHeaders = headers.sort((a, b) => {
+        const aPriority = headerPredicate(a)["priority"];
+        const bPriority = headerPredicate(b)["priority"];
+        return bPriority - aPriority;
+    });
     let values = items.filter(valuePredicate["result"] ? valuePredicate : (item) => valuePredicate(item)["result"]);
     const sortedValues = values.sort((a, b) => {
         const aPriority = valuePredicate(a)["priority"];
@@ -247,7 +340,7 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer) {
 
     let allSamePageValues = [];
     let allValues = [];
-    for (const header of headers) {
+    for (const header of sortedHeaders) {
         const samePageValues = sortedValues.filter(value =>
             value.page === header.page
         );
@@ -281,7 +374,7 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer) {
         }
     }
     if (allValues.length > 0) {
-        const pickedValue = allValues[0];
+        const pickedValue = allValues[allValues.length - 1];
         const normalizedValue = valueNormalizer(pickedValue.text);
         console.log("Found Values:", normalizedValue);
         return normalizedValue;
@@ -310,9 +403,11 @@ export async function extractFieldsFromPDF(file) {
     const awb = findByGeo(textItems, isAwbHeader, isAwbNumber, normalizeAwb);
     const pcs = findByGeo(textItems, isPcsHeader, isPcsNumber, normalizePcs);
     const skids = findByGeo(textItems, isSkidHeader, isSkidNumber, normalizeSkid);
+    const CAD = findByGeo(textItems, isCADHeader, isCADNumber, normalizeCAD);
     return {
         "AWB": awb,
         "pcs": pcs,
-        "skids": skids
+        "skids": skids,
+        "CAD": CAD
     };
 }
