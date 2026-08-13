@@ -722,6 +722,7 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer, stri
     
 
     let allSamePageValues = [];
+    let headers_record = [];
     let allValues = [];
     for (const header of sortedHeaders) {
         const samePageValues = sortedValues.filter(value =>
@@ -754,11 +755,33 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer, stri
         const closestValue = rightBottomValues[0];
         if (closestValue) {
             allValues.push(closestValue);
+            headers_record.push(header)
         }
     }
     if (allValues.length > 0) {
+        const pickedHeader = headers_record[headers_record.length - 1].text
+            .toUpperCase()
+            .replace(/[^A-Z0-9]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
         const pickedValue = allValues[allValues.length - 1];
-        const normalizedValue = valueNormalizer(pickedValue.text);
+        let normalizedValue = valueNormalizer(pickedValue.text);
+        if (pickedHeader.includes("STORAGE CHARGE START DATE") ||
+            pickedHeader.includes("STORAGE CHARGES COMMENCE") ||
+            pickedHeader.includes("STORAGE CHARGES START") ||
+            pickedHeader.includes("STORAGE CHARGES BEGIN")
+        ){
+            console.log("special: day - 1", normalizedValue)
+            const [year, month, day] =
+                normalizedValue.split("-").map(Number);
+            const date =
+                new Date(year, month, day);
+            date.setDate(date.getDate() - 1);
+            normalizedValue = `${date.getFullYear()}-` +
+                `${pad2(date.getMonth() + 1)}-` +
+                `${pad2(date.getDate())}`;
+            console.log("special: day -1 end", normalizedValue);
+        }
         console.log("Found Values:", normalizedValue);
         return normalizedValue;
     }
