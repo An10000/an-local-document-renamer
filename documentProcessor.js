@@ -775,7 +775,7 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer, stri
             const [year, month, day] =
                 normalizedValue.split("-").map(Number);
             const date =
-                new Date(year, month, day);
+                new Date(year, month - 1, day);
             date.setDate(date.getDate() - 1);
             normalizedValue = `${date.getFullYear()}-` +
                 `${pad2(date.getMonth() + 1)}-` +
