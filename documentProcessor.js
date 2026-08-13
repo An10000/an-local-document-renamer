@@ -264,15 +264,10 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer) {
             value.x > header.x + header.width
         );
         // bottom
-        const bottomValues = samePageValues.filter(value => {
-            const verticalGap =
-                header.y - value.y;
-            return (
-                Math.abs(value.x - header.x) <= xTolerance &&
-                verticalGap > 0 &&
-                verticalGap <= maxVerticalDistance
-            );
-        });
+        const bottomValues = samePageValues.filter(value =>
+            horizontallyOverlaps(header, value) &&
+            value.y < header.y
+        );
 
         const rightBottomValues = [...rightValues, ...bottomValues];
         rightBottomValues.sort(

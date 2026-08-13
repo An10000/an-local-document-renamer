@@ -68,8 +68,9 @@ function openPDF(file) {
             anDateInput.value = `${fields.AN_Date}` ?? "";
             const storagePeriodInput = document.getElementById("storage-period-days");
             storagePeriodInput.value = `${fields.Storage_period}` ?? "";
-            const filenameText = document.getElementById("filename-text");
-            filenameText.value = "AN-"+`${fields.AWB}`+"-"+`${fields.pcs}`+"pcs-"+`${fields.skids}`+"skids-"+`${fields.CAD}`+"CAD-"+"LFD"+`${fields.LFD}`;
+            // const filenameText = document.getElementById("filename-text");
+            // filenameText.value = "AN-"+`${fields.AWB}`+"-"+`${fields.pcs}`+"pcs-"+`${fields.skids}`+"skids-"+`${fields.CAD}`+"CAD-"+"LFD"+`${fields.LFD}`;
+            updateFilename();
         })
         .catch((error) => {
             console.error("Error extracting text or fields:", error);
@@ -81,6 +82,53 @@ const copyButton = document.getElementById("copy-button");
 const copyIcon = document.getElementById("copy-icon");
 const checkIcon = document.getElementById("check-icon");
 const filenameText = document.getElementById("filename-text");
+
+function updateFilename() {
+    const awb = document.getElementById("awb-input").value.trim();
+    const pcs = document.getElementById("pcs-input").value.trim();
+    const skid = document.getElementById("skids-input").value.trim();
+    const cad = document.getElementById("cad-input").value.trim();
+    const LFD = document.getElementById("lfd-input").value.trim();
+    const parts = [];
+    if (awb) {
+        parts.push(awb);
+    }
+    if (pcs && pcs !== "undefined" && pcs !== "" && pcs !== "null") {
+        parts.push(pcs + "pcs");
+    }
+    if (skid && skid !== "undefined" && skid !== "" && skid !== "null") {
+        parts.push(skid + "skids");
+    }
+    if (cad && cad !== "undefined" && cad !== "" && cad !== "null") {
+        parts.push(cad + "CAD");
+    }
+    if (LFD && LFD !== "undefined" && LFD !== "" && LFD !== "null") {
+        parts.push("LFD" + LFD);
+    }
+    filenameText.value = "AN-" + parts.join("-") + ".pdf";
+}
+
+const infoTable = document.getElementsByClassName("info-table-input");
+
+console.log("Found inputs:", infoTable.length);
+console.log(infoTable);
+
+for (let i = 0; i < infoTable.length; i++) {     
+    infoTable[i].addEventListener(         
+        "input",         
+        () => {             
+            console.log("Input event detected, updating filename...");             
+            updateFilename();         
+        }     
+    );     
+    infoTable[i].addEventListener(         
+        "change",         
+        () => {             
+            console.log("Change event detected, updating filename...");             
+            updateFilename();         
+        }     
+    ); 
+}
 
 copyButton.addEventListener("click", async () => {
     await navigator.clipboard.writeText(filenameText.value);
