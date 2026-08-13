@@ -285,6 +285,389 @@ function isCADNumber(item){
     };
 }
 
+// LFD Header Detection
+function isLFDHeader(item){
+    const text = item.text
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    // Explicit / strong LFD wording
+    if (
+        /\bLFD\b/.test(text) ||
+        text.includes("LAST FREE DAY") ||
+        text.includes("LAST FREE DATE") ||
+        text.includes("WAREHOUSE IS FREE UNTIL") ||
+        text.includes("FREE STORAGE UNTIL") ||
+        text.includes("STORAGE FREE UNTIL")
+    ) {
+        return {
+            result: true,
+            priority: 3
+        };
+    }
+
+    // Charge-start wording
+    if (
+        text.includes("STORAGE CHARGE START DATE") ||
+        text.includes("STORAGE CHARGES COMMENCE") ||
+        text.includes("STORAGE CHARGES START") ||
+        text.includes("STORAGE CHARGES BEGIN")
+    ) {
+        return {
+            result: true,
+            priority: 2
+        };
+    }
+
+    return {
+        result: false,
+        priority: 0
+    };
+}
+// LFD/ANDate Value
+const MONTH_ABBR = {
+    JAN: 1,
+    FEB: 2,
+    MAR: 3,
+    APR: 4,
+    MAY: 5,
+    JUN: 6,
+    JUL: 7,
+    AUG: 8,
+    SEP: 9,
+    SEPT: 9,
+    OCT: 10,
+    NOV: 11,
+    DEC: 12
+};
+
+const MONTH_FULL = {
+    JANUARY: 1,
+    FEBRUARY: 2,
+    MARCH: 3,
+    APRIL: 4,
+    MAY: 5,
+    JUNE: 6,
+    JULY: 7,
+    AUGUST: 8,
+    SEPTEMBER: 9,
+    OCTOBER: 10,
+    NOVEMBER: 11,
+    DECEMBER: 12
+};
+function getEnglishMonth(part) {
+    const text = part.toUpperCase();
+    if (MONTH_ABBR[text]) {
+        return MONTH_ABBR[text];
+    }
+    if (MONTH_FULL[text]) {
+        return MONTH_FULL[text];
+    }
+    return null;
+}
+function getNearbyYear(part) {
+    if (part.length !== 2) {
+        return null;
+    }
+    const number = Number(part);
+    const currentYear = new Date().getFullYear();
+    const nearbyYears = [
+        currentYear - 1,
+        currentYear,
+        currentYear + 1
+    ];
+    for (const year of nearbyYears) {
+        if (year % 100 === number) {
+            return year;
+        }
+    }
+    return null;
+}
+function decideMonthAndDay(partA, partB) {
+    const a = Number(partA);
+    const b = Number(partB);
+    // A 不可能是月份
+    if (a > 12 && b <= 12) {
+        return {
+            month: b,
+            day: a
+        };
+    }
+    // B 不可能是月份
+    if (b > 12 && a <= 12) {
+        return {
+            month: a,
+            day: b
+        };
+    }
+    // 两个都不可能是月份
+    if (a > 12 && b > 12) {
+        return null;
+    }
+    // 两个都可能是月份
+    const currentMonth =
+        new Date().getMonth() + 1;
+    const aDistance =
+        Math.abs(a - currentMonth);
+    const bDistance =
+        Math.abs(b - currentMonth);
+    if (aDistance <= bDistance) {
+        return {
+            month: a,
+            day: b
+        };
+    }
+    return {
+        month: b,
+        day: a
+    };
+}
+function getDateParts(text) {
+    // 12-Aug-2026
+    // 2026-Aug-12
+    let match = text.match(
+        /(\d{1,4})\s*[-./\s]\s*([A-Za-z]+)\s*[-./\s]\s*(\d{1,4})/
+    );
+    if (match) {
+        return [
+            match[1],
+            match[2],
+            match[3]
+        ];
+    }
+    // Aug-12-2026
+    // Aug 12 2026
+    match = text.match(
+        /([A-Za-z]+)\s*[-./\s]\s*(\d{1,2})\s*[-.,/\s]\s*(\d{2,4})/
+    );
+    if (match) {
+        return [
+            match[1],
+            match[2],
+            match[3]
+        ];
+    }
+    // 13.08.2026
+    // 8/15/2026
+    // 08-12-26
+    match = text.match(
+        /(\d{1,4})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{1,4})/
+    );
+    if (match) {
+        return [
+            match[1],
+            match[2],
+            match[3]
+        ];
+    }
+    return null;
+}
+function parseEnglishMonthDate(part1, part2, part3) {
+    const parts = [part1, part2, part3];
+    let month = null;
+    let monthIndex = null;
+    // 先找英文月份
+    for (let i = 0; i < parts.length; i++) {
+        const foundMonth =
+            getEnglishMonth(parts[i]);
+        if (foundMonth !== null) {
+            month = foundMonth;
+            monthIndex = i;
+            break;
+        }
+    }
+    if (month === null) {
+        return null;
+    }
+    // 剩下两个
+    const remaining = parts
+        .map((value, index) => ({
+            value,
+            index
+        }))
+        .filter(part =>
+            part.index !== monthIndex
+        );
+    let year = null;
+    let day = null;
+    // 有没有 4 位年份
+    const fourDigitYear =
+        remaining.find(part =>
+            part.value.length === 4
+        );
+    if (fourDigitYear) {
+        year = Number(fourDigitYear.value);
+        const dayPart =
+            remaining.find(part =>
+                part !== fourDigitYear
+            );
+        day = Number(dayPart.value);
+    }
+    else {
+        // 都是两位数：
+        // 看哪个像今年 ±1
+        const yearPart =
+            remaining.find(part =>
+                getNearbyYear(part.value) !== null
+            );
+        if (!yearPart) {
+            return null;
+        }
+        year =
+            getNearbyYear(yearPart.value);
+        const dayPart =
+            remaining.find(part =>
+                part !== yearPart
+            );
+        day = Number(dayPart.value);
+    }
+    return {
+        year,
+        month,
+        day
+    };
+}
+function parseNumericDate(part1, part2, part3) {
+    const parts = [part1, part2, part3];
+    let year = null;
+    let yearIndex = null;
+    // 先找四位年份
+    for (let i = 0; i < parts.length; i++) {
+        if (parts[i].length === 4) {
+            year = Number(parts[i]);
+            yearIndex = i;
+            break;
+        }
+    }
+    // 没有四位年份
+    // 就找是否有今年 ±1 的两位年份
+    if (year === null) {
+        for (let i = 0; i < parts.length; i++) {
+            const nearbyYear =
+                getNearbyYear(parts[i]);
+
+            if (nearbyYear !== null) {
+                year = nearbyYear;
+                yearIndex = i;
+                break;
+            }
+        }
+    }
+    // 年份还是无法确定
+    if (year === null) {
+        return null;
+    }
+    // 剩下两个就是 month / day
+    const remaining =
+        parts.filter(
+            (_, index) =>
+                index !== yearIndex
+        );
+    const monthDay =
+        decideMonthAndDay(
+            remaining[0],
+            remaining[1]
+        );
+    if (!monthDay) {
+        return null;
+    }
+    return {
+        year,
+        month: monthDay.month,
+        day: monthDay.day
+    };
+}
+function getTime(text) {
+    const match = text.match(
+        /(\d{1,2}):(\d{2})\s*(AM|PM)?/i
+    );
+
+    if (!match) {
+        return null;
+    }
+
+    let hour = Number(match[1]);
+    const minute = Number(match[2]);
+
+    const ampm =
+        match[3]?.toUpperCase();
+
+    if (ampm === "PM" && hour < 12) {
+        hour += 12;
+    }
+
+    if (ampm === "AM" && hour === 12) {
+        hour = 0;
+    }
+
+    return {
+        hour,
+        minute
+    };
+}
+function parseDateTime(text){
+    const parts = getDateParts(text);
+    if (!parts) {
+        return null;
+    }
+    const part1 = parts[0];
+    const part2 = parts[1];
+    const part3 = parts[2];
+    // 看三个部分有没有英文月份
+    const hasEnglishMonth =
+        getEnglishMonth(part1) !== null ||
+        getEnglishMonth(part2) !== null ||
+        getEnglishMonth(part3) !== null;
+    let date;
+    if (hasEnglishMonth) {
+        date = parseEnglishMonthDate(
+            part1,
+            part2,
+            part3
+        );
+    }
+    else {
+        date = parseNumericDate(
+            part1,
+            part2,
+            part3
+        );
+    }
+    if (!date) {
+        return null;
+    }
+    const time = getTime(text);
+    return {
+        year: date.year,
+        month: date.month,
+        day: date.day,
+        hour: time?.hour ?? null,
+        minute: time?.minute ?? null
+    };
+}
+function pad2(number) {
+    return String(number).padStart(2, "0");
+}
+function normalizeDate(text){
+    const parsed = parseDateTime(text);
+    if (!parsed) {
+        return null;
+    }
+    return (
+        `${parsed.year}-` +
+        `${pad2(parsed.month)}-` +
+        `${pad2(parsed.day)}`
+    );
+}
+function isDate(item){
+    const parsed = parseDateTime(item.text);
+    return {
+        result: parsed !== null,
+        priority: 1
+    };
+}
 // function to find by geometry
 // horizontal find helper:
 function horizontallyOverlaps(a, b) {
@@ -323,7 +706,7 @@ function getDistance(header, value) {
 
     return dx + dy;
 }
-function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer) {
+function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer, strictGeometry=false) {
     let headers = items.filter(headerPredicate["result"] ? headerPredicate : (item) => headerPredicate(item)["result"]);
     const sortedHeaders = headers.sort((a, b) => {
         const aPriority = headerPredicate(a)["priority"];
@@ -379,6 +762,7 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer) {
         console.log("Found Values:", normalizedValue);
         return normalizedValue;
     }
+    else if (strictGeometry){return null;}
     else if (allSamePageValues.length > 0) {
         // if no right/bottom values, pick the first one on the same page
         const pickedValue = allSamePageValues[0];
@@ -404,10 +788,12 @@ export async function extractFieldsFromPDF(file) {
     const pcs = findByGeo(textItems, isPcsHeader, isPcsNumber, normalizePcs);
     const skids = findByGeo(textItems, isSkidHeader, isSkidNumber, normalizeSkid);
     const CAD = findByGeo(textItems, isCADHeader, isCADNumber, normalizeCAD);
+    const LFD = findByGeo(textItems, isLFDHeader, isDate, normalizeDate, true);
     return {
         "AWB": awb,
         "pcs": pcs,
         "skids": skids,
-        "CAD": CAD
+        "CAD": CAD,
+        "LFD": LFD
     };
 }
