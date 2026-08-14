@@ -1,5 +1,6 @@
 import {
-    extractFieldsFromPDF
+    extractFieldsFromPDF,
+    pad2
 } from "./documentProcessor.js";
 // left panel logic
 const dropZone = document.getElementById("drop-zone");
@@ -88,7 +89,9 @@ function updateFilename() {
     const pcs = document.getElementById("pcs-input").value.trim();
     const skid = document.getElementById("skids-input").value.trim();
     const cad = document.getElementById("cad-input").value.trim();
-    const LFD = document.getElementById("lfd-input").value.trim();
+    let LFD = document.getElementById("lfd-input").value.trim();
+    const ANDate = document.getElementById("an-date").value.trim();
+    const storagePeriod = document.getElementById("storage-period-days").value.trim();
     const parts = [];
     if (awb) {
         parts.push(awb);
@@ -104,6 +107,42 @@ function updateFilename() {
     }
     if (LFD && LFD !== "undefined" && LFD !== "" && LFD !== "null") {
         parts.push("LFD" + LFD);
+    }
+    if (ANDate && ANDate !== "undefined" && ANDate !== "" && ANDate !== "null") {
+        if (storagePeriod && storagePeriod !== "undefined" && storagePeriod !== "" && storagePeriod !== "null"){
+            console.log("updating lfd using andate", ANDate);
+            const [year, month, day] = ANDate.split("-").map(Number);
+            const ANdate_date = new Date(year, month - 1, day);
+            const storagePeriod_num = Number(storagePeriod);
+            if (
+                Number.isNaN(ANdate_date.getTime()) ||
+                Number.isNaN(storagePeriod_num)
+            ) {
+                console.warn(
+                    "ANDate or storage period is invalid"
+                );
+            }
+            else {
+                ANdate_date.setDate(
+                    ANdate_date.getDate() +
+                    storagePeriod_num
+                );
+
+                const newLfd =
+                    `${ANdate_date.getFullYear()}-` +
+                    `${pad2(ANdate_date.getMonth() + 1)}-` +
+                    `${pad2(ANdate_date.getDate())}`;
+                console.warn("updating lfd using andate");
+                LFD = newLfd;
+
+                console.log(
+                    "updating lfd using andate end",
+                    LFD
+                );
+                document.getElementById("lfd-input").value = LFD;
+                parts.push("LFD" + LFD);
+            }
+        }
     }
     filenameText.value = "AN-" + parts.join("-") + ".pdf";
 }

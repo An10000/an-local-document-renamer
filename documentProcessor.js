@@ -647,7 +647,7 @@ function parseDateTime(text){
         minute: time?.minute ?? null
     };
 }
-function pad2(number) {
+export function pad2(number) {
     return String(number).padStart(2, "0");
 }
 function normalizeDate(text){
