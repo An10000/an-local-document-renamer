@@ -103,7 +103,7 @@ function updateFilename() {
         parts.push(skid + "skids");
     }
     if (cad && cad !== "undefined" && cad !== "" && cad !== "null") {
-        parts.push(cad + "CAD");
+        parts.push("CAD"+cad);
     }
     if (LFD && LFD !== "undefined" && LFD !== "" && LFD !== "null") {
         parts.push("LFD" + LFD);
@@ -144,7 +144,7 @@ function updateFilename() {
             }
         }
     }
-    filenameText.value = "AN-" + parts.join("-") + ".pdf";
+    filenameText.value = "AN-" + parts.join("-");
 }
 
 const infoTable = document.getElementsByClassName("info-table-input");
