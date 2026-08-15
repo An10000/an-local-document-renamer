@@ -78,7 +78,7 @@ function normalizeAwb(text) {
 function isAwbNumber(item) {
     return {
         "result":normalizeAwb(item.text) !== null,
-        "priority": 1
+        "priority": 2
     };
 }
 
@@ -281,7 +281,7 @@ function isCADNumber(item){
     console.log("Checking if item is CAD number:", item.text, "Result:", normalizeCAD(item.text) !== null, "item: ", item);
     return {
         "result": normalizeCAD(item.text) !== null,
-        "priority": 1
+        "priority": 2
     };
 }
 
@@ -796,6 +796,9 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer, stri
     else if (sortedValues.length > 0) {
         // if no values on the same page, pick the first one from all pages
         const pickedValue = sortedValues[0];
+        // if priority is not high enough for skids/pcs return null
+        const pickedValuePriority = valuePredicate(sortedValues[0])["priority"];
+        if (pickedValuePriority < 2){return null;}
         const normalizedValue = valueNormalizer(pickedValue.text);
         console.log("Warning: No header found, using first candidate:", normalizedValue);
         return normalizedValue;
