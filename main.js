@@ -180,3 +180,14 @@ copyButton.addEventListener("click", async () => {
         checkIcon.style.display = "none";
     }, 1500);
 });
+
+const refreshButton =
+    document.getElementById("refresh-button");
+const refreshCheck = document.getElementById("refresh-check");
+
+refreshButton.addEventListener("click", () => {
+        refreshButton.style.display = "none";
+        refreshCheck.style.display = "block";
+        window.location.reload();
+    }
+);

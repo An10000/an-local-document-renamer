@@ -173,3 +173,16 @@ h1 {
 #check-icon {
     display: none;
 }
+
+
+.refresh-section {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 8px;
+    margin-top: 10px;
+}
+#refresh-check {
+    display: none;
+}
