@@ -102,6 +102,11 @@ function isPcsHeader(item) {
 function normalizePcs(text) {
     const raw = text.trim();
     const pcsMatch = raw.match(/(\d+)\s*PCS/i);
+    const specialMatch = text.match(/\bPART\s*(\d+)\s*OF\s*\d+\s*PCS\b/i);
+
+    if (specialMatch) {
+        return specialMatch[1];
+    }
     if (pcsMatch) {
         return pcsMatch[1];
     }
@@ -112,6 +117,13 @@ function normalizePcs(text) {
 }
 function isPcsNumber(item) {
     const raw = item.text.trim();
+    if (/\bPART\s*(\d+)\s*OF\s*\d+\s*PCS\b/i.test(raw)){
+        console.log("Checking if item is PCS number:", raw, "Result:", /\bPART\s*(\d+)\s*OF\s*\d+\s*PCS\b/i.test(raw));
+        return {
+            "result": true,
+            "priority": 3
+        };
+    }
     if (/\d+\s*PCS/i.test(raw)) {
         console.log("Checking if item is PCS number:", raw, "Result:", /\d+\s*PCS/i.test(raw));
         return {
@@ -149,16 +161,18 @@ function isSkidHeader(item) {
             text.includes(keyword)
         );
     const isNumber = isSkidNumber(item);
+    const containsCharge = text.includes("CHARGE");
+
     console.log(
         "Checking if item is SKID header:",
         text,
         "Result:",
-        containsHeaderKeyword && !isNumber["result"],
+        containsHeaderKeyword && !isNumber["result"] && !containsCharge,
         "item:",
         item
     );
     return {
-        "result":containsHeaderKeyword && !isNumber["result"],
+        "result":containsHeaderKeyword && !isNumber["result"] && !containsCharge,
         "priority": 1
     };
 }
@@ -785,7 +799,7 @@ function findByGeo(items, headerPredicate, valuePredicate, valueNormalizer, stri
         console.log("Found Values:", normalizedValue);
         return normalizedValue;
     }
-    else if (strictGeometry){return null;}
+    else if (strictGeometry){console.log("value rejected by strictGeo", headerPredicate);return null;}
     else if (allSamePageValues.length > 0) {
         // if no right/bottom values, pick the first one on the same page
         const pickedValue = allSamePageValues[0];
